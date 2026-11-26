@@ -56,6 +56,7 @@ if (!config?.url || !config?.anonKey) {
   let friendships = [];
   let letters = [];
   let loadSequence = 0;
+  let loadedUserId = null;
 
   function setAuthenticatedView() {
     const signedIn = Boolean(currentUser);
@@ -66,6 +67,7 @@ if (!config?.url || !config?.anonKey) {
       setUnlockMinimum();
     } else {
       document.querySelector("#friend-account-email").textContent = "";
+      loadedUserId = null;
       friendships = [];
       letters = [];
       document.querySelector("#friend-requests").replaceChildren();
@@ -239,10 +241,26 @@ if (!config?.url || !config?.anonKey) {
       if (lettersResult.error) throw lettersResult.error;
       if (sequence !== loadSequence || currentUser?.id !== userId) return;
 
-      friendships = friendshipsResult.data || [];
-      letters = lettersResult.data || [];
+      const nextFriendships = friendshipsResult.data || [];
+      const nextLetters = lettersResult.data || [];
+      const isRefresh = loadedUserId === userId;
+      const previousFriendships = new Map(friendships.map((friendship) => [friendship.id, friendship]));
+      const previousLetterIds = new Set(letters.map((letter) => letter.id));
+      const newFriendships = isRefresh ? nextFriendships.filter((friendship) => {
+        const previous = previousFriendships.get(friendship.id);
+        return !previous || (previous.status !== "accepted" && friendship.status === "accepted");
+      }).length : 0;
+      const newLetters = isRefresh
+        ? nextLetters.filter((letter) => !previousLetterIds.has(letter.id)).length
+        : 0;
+      friendships = nextFriendships;
+      letters = nextLetters;
       renderFriendships();
       renderLetters();
+      loadedUserId = userId;
+      for (let index = 0; index < newFriendships + newLetters; index += 1) {
+        window.triggerShootingStar?.();
+      }
       return true;
     } catch (error) {
       if (sequence === loadSequence) {

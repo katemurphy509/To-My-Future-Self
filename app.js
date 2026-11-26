@@ -14,12 +14,38 @@ const photoInput = document.querySelector("#photo-input");
 const photoPreview = document.querySelector("#photo-preview");
 const errorMessage = document.querySelector("#form-error");
 const toast = document.querySelector("#toast");
+const contentStarLayer = document.querySelector("#content-star-layer");
 const objectUrls = new Set();
 let capsules = [];
 let selectedFilter = "all";
 let selectedAttachments = [];
 let isSavingSnapshot = false;
 let toastTimer;
+
+function triggerShootingStar() {
+  if (!contentStarLayer || window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
+
+  const star = document.createElement("span");
+  const direction = Math.random() < 0.5 ? -1 : 1;
+  const travelX = direction * (24 + Math.random() * 28);
+  const travelY = -8 + Math.random() * 28;
+  const duration = 0.95 + Math.random() * 0.75;
+  const hue = 205 + Math.random() * 70;
+  star.className = "content-shooting-star";
+  star.style.left = `${direction > 0 ? 3 + Math.random() * 24 : 73 + Math.random() * 24}vw`;
+  star.style.top = `${8 + Math.random() * 62}vh`;
+  star.style.setProperty("--travel-x", `${travelX}vw`);
+  star.style.setProperty("--travel-y", `${travelY}vh`);
+  star.style.setProperty("--trail-angle", `${Math.atan2(travelY, travelX) * 180 / Math.PI}deg`);
+  star.style.setProperty("--trail-length", `${70 + Math.random() * 65}px`);
+  star.style.setProperty("--flight-duration", `${duration}s`);
+  star.style.setProperty("--star-hue", hue);
+  star.addEventListener("animationend", () => star.remove(), { once: true });
+  contentStarLayer.append(star);
+  window.setTimeout(() => star.remove(), duration * 1000 + 200);
+}
+
+window.triggerShootingStar = triggerShootingStar;
 
 function openDatabase() {
   return new Promise((resolve, reject) => {
@@ -567,6 +593,7 @@ form.addEventListener("submit", async (event) => {
     composeDialog.close();
     renderCapsules();
     showToast(kind === "memory" ? "Your memory is safely tucked away." : "Your capsule is safely tucked away.");
+    triggerShootingStar();
   } catch (error) {
     errorMessage.textContent = `Could not save your capsule. Your browser may be low on storage. ${error.message || ""}`.trim();
     errorMessage.hidden = false;
@@ -629,6 +656,7 @@ snapshotForm.addEventListener("submit", (event) => {
   snapshotForm.reset();
   renderCapsules();
   showToast("Snapshot saved. This is your life, right now.");
+  triggerShootingStar();
   setTimeout(() => {
     isSavingSnapshot = false;
     snapshotSubmitButton.disabled = false;
