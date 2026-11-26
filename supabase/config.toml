@@ -1,0 +1,4 @@
+project_id = "to-my-future-self"
+
+[functions.notify-unlocked]
+verify_jwt = true

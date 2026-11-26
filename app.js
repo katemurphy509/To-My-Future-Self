@@ -431,7 +431,7 @@ async function shareCapsule(capsule) {
 
 function renderPage() {
   const route = location.hash.slice(1) || "home";
-  const validRoutes = ["home", "letters", "memories", "life-right-now"];
+  const validRoutes = ["home", "letters", "memories", "life-right-now", "friends"];
   const page = validRoutes.includes(route) ? route : "home";
   if (route !== page) history.replaceState(null, "", `#${page}`);
   document.querySelectorAll(".page-view").forEach((view) => {
