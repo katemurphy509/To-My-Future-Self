@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f7f5ef">
+    <meta name="description" content="Save today. Revisit tomorrow. Create digital time capsules with photos, letters, videos, music, and memories.">
+    <title>To My Future Self — a little time capsule</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="app.js" defer></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="#home" aria-label="To My Future Self home">
+        <span class="brand-mark" aria-hidden="true">✳</span>
+        <span>to my <strong>future self</strong></span>
+      </a>
+      <nav class="top-nav" aria-label="Main navigation">
+        <a class="nav-link active" href="#home" data-page-link="home">Home</a>
+        <a class="nav-link" href="#letters" data-page-link="letters">Letters</a>
+        <a class="nav-link" href="#memories" data-page-link="memories">Photo &amp; video</a>
+        <a class="nav-link" href="#life-right-now" data-page-link="life-right-now">My life right now</a>
+      </nav>
+      <button class="button button-dark top-write" type="button" data-open-compose data-kind="letter">
+        <span aria-hidden="true">＋</span> Write a letter
+      </button>
+    </header>
+
+    <main>
+      <div class="page-view" id="home-page" data-page="home">
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="hero-copy">
+          <p class="eyebrow"><span class="eyebrow-dot"></span> A LITTLE TIME CAPSULE FOR YOU</p>
+          <h1 id="hero-title">Save today.<br>Revisit <em>tomorrow.</em></h1>
+          <p class="hero-description">Create digital time capsules filled with photos, letters, videos, music, and memories. Lock them until a future date and rediscover who you were, what you loved, and what you dreamed about.</p>
+          <button class="button button-coral hero-cta" type="button" data-open-compose data-kind="letter">
+            Tuck something away <span aria-hidden="true">↗</span>
+          </button>
+          <div class="hero-note"><span class="note-sparkle" aria-hidden="true">✳</span> A small gift from present you to future you.</div>
+        </div>
+        <div class="hero-art" aria-hidden="true">
+          <div class="sun"></div>
+          <div class="orbit orbit-one"></div>
+          <div class="orbit orbit-two"></div>
+          <div class="postcard">
+            <div class="postcard-top"><span>FOR YOU, LATER</span><span class="postcard-stamp">✳</span></div>
+            <div class="postcard-line"></div>
+            <div class="postcard-line short"></div>
+            <div class="postcard-hand">dear future me,</div>
+            <div class="postcard-bottom">OPEN WHEN YOU’RE READY</div>
+          </div>
+          <span class="art-star star-one">✳</span>
+          <span class="art-star star-two">✳</span>
+          <span class="art-squiggle">〰</span>
+          <div class="art-caption">a message<br>across time <span>↙</span></div>
+        </div>
+      </section>
+
+      <section class="capsules-section" id="capsules" aria-labelledby="capsules-title">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow section-eyebrow">YOUR LITTLE TIME CAPSULES</p>
+            <h2 id="capsules-title">Things you’ve tucked away<span class="heading-period">.</span></h2>
+          </div>
+          <button class="button button-outline" type="button" data-open-compose><span aria-hidden="true">＋</span> New capsule</button>
+        </div>
+        <div class="capsule-toolbar">
+          <div class="filter-tabs" role="group" aria-label="Filter capsules">
+            <button class="filter-tab active" type="button" data-filter="all">All <span data-count="all">0</span></button>
+            <button class="filter-tab" type="button" data-filter="waiting">Waiting <span data-count="waiting">0</span></button>
+            <button class="filter-tab" type="button" data-filter="ready">Ready to open <span data-count="ready">0</span></button>
+          </div>
+          <label class="search-box">
+            <span aria-hidden="true">⌕</span>
+            <span class="visually-hidden">Search capsules</span>
+            <input id="search-input" type="search" placeholder="Find a memory..." autocomplete="off">
+          </label>
+        </div>
+        <div class="capsule-grid" id="capsule-grid" aria-live="polite"></div>
+        <div class="empty-state" id="empty-state" hidden>
+          <span class="empty-icon" aria-hidden="true">✳</span>
+          <h3 id="empty-title">Your story starts here.</h3>
+          <p id="empty-description">Write a note to the you of tomorrow, next year, or whenever you need it.</p>
+          <button class="button button-dark" type="button" data-open-compose>Write your first letter <span aria-hidden="true">↗</span></button>
+        </div>
+      </section>
+
+      <section class="how-section" id="how-it-works" aria-labelledby="how-title">
+        <div class="how-intro">
+          <p class="eyebrow">IT’S THAT SIMPLE</p>
+          <h2 id="how-title">Today, saved<br>for <em>another day.</em></h2>
+        </div>
+        <div class="how-steps">
+          <article class="how-step"><span class="step-number">01</span><span class="step-icon" aria-hidden="true">✎</span><h3>Write it down</h3><p>A letter, a journal entry, a photo, or a thought you don’t want to lose.</p></article>
+          <article class="how-step"><span class="step-number">02</span><span class="step-icon" aria-hidden="true">◷</span><h3>Pick your someday</h3><p>Choose the date you’d like your little time capsule to find its way back to you.</p></article>
+          <article class="how-step"><span class="step-number">03</span><span class="step-icon" aria-hidden="true">♡</span><h3>Meet yourself there</h3><p>When the day comes, open it up and remember who you were right now.</p></article>
+        </div>
+      </section>
+      </div>
+
+      <section class="page-view collection-page" id="letters-page" data-page="letters" hidden aria-labelledby="letters-title">
+        <div class="collection-heading">
+          <p class="eyebrow section-eyebrow">WORDS FOR ANOTHER DAY</p>
+          <h1 id="letters-title">Letters to your future self<span class="heading-period">.</span></h1>
+          <p>Write down what you hope you’ll remember. Choose a day to open it, and let these words wait for you.</p>
+          <button class="button button-coral" type="button" data-open-compose data-kind="letter">Write a letter <span aria-hidden="true">↗</span></button>
+        </div>
+        <div class="collection-toolbar"><span>Your letters &amp; journal entries</span><span id="letters-count">0 letters</span></div>
+        <div class="capsule-grid" id="letters-grid" aria-live="polite"></div>
+        <div class="empty-state collection-empty" id="letters-empty" hidden><span class="empty-icon" aria-hidden="true">✎</span><h3>No letters just yet.</h3><p>Your future self would love to hear from you.</p><button class="button button-dark" type="button" data-open-compose data-kind="letter">Start writing <span aria-hidden="true">↗</span></button></div>
+      </section>
+
+      <section class="page-view collection-page" id="memories-page" data-page="memories" hidden aria-labelledby="memories-title">
+        <div class="collection-heading memories-heading">
+          <p class="eyebrow section-eyebrow">LITTLE MOMENTS, KEPT</p>
+          <h1 id="memories-title">Photo, video &amp; music memories<span class="heading-period">.</span></h1>
+          <p>Save the faces, places, songs, and small in-between moments you want to revisit someday.</p>
+          <button class="button button-coral" type="button" data-open-compose data-kind="memory">Add a memory <span aria-hidden="true">↗</span></button>
+        </div>
+        <div class="collection-toolbar"><span>Your saved moments</span><span id="memories-count">0 memories</span></div>
+        <div class="capsule-grid memory-grid" id="memories-grid" aria-live="polite"></div>
+        <div class="empty-state collection-empty" id="memories-empty" hidden><span class="empty-icon" aria-hidden="true">▧</span><h3>Keep a moment for later.</h3><p>Add photos, videos, or music, set a date, and let a little piece of today wait for you.</p><button class="button button-dark" type="button" data-open-compose data-kind="memory">Save a memory <span aria-hidden="true">↗</span></button></div>
+      </section>
+
+      <section class="page-view collection-page life-page" id="life-right-now-page" data-page="life-right-now" hidden aria-labelledby="life-title">
+        <div class="collection-heading">
+          <p class="eyebrow section-eyebrow">A SNAPSHOT OF THIS CHAPTER</p>
+          <h1 id="life-title">My life right now<span class="heading-period">.</span></h1>
+          <p>What does an ordinary day look like? Save the little details you might not think to write in a letter.</p>
+        </div>
+        <form class="snapshot-form" id="snapshot-form">
+          <div class="snapshot-form-heading"><span class="step-number">A MOMENT IN TIME</span><span id="snapshot-today"></span></div>
+          <label class="field-label" for="snapshot-title">Name this chapter <span class="optional-label">· optional</span></label>
+          <input class="text-input" id="snapshot-title" maxlength="100" placeholder="A season of figuring things out">
+          <div class="snapshot-fields">
+            <label><span class="field-label">Where are you these days?</span><input class="text-input" name="place" maxlength="120" placeholder="City, home, somewhere new..."></label>
+            <label><span class="field-label">How are you feeling?</span><input class="text-input" name="feeling" maxlength="120" placeholder="A little hopeful, mostly tired..."></label>
+            <label><span class="field-label">What are you loving lately?</span><input class="text-input" name="loving" maxlength="180" placeholder="Slow mornings, long walks..."></label>
+            <label><span class="field-label">What are you looking forward to?</span><input class="text-input" name="lookingForward" maxlength="180" placeholder="The trip, the weekend, what's next..."></label>
+          </div>
+          <label class="field-label" for="snapshot-body">Tell future you what life feels like <span class="optional-label">· a few lines is enough</span></label>
+          <textarea class="text-input text-area" id="snapshot-body" name="body" placeholder="The little routines, the people around you, the thing on your mind..." required></textarea>
+          <div class="snapshot-submit"><p><span aria-hidden="true">⌂</span> Saved privately in this browser. You can find it here anytime.</p><button class="button button-coral" type="submit">Save this snapshot <span aria-hidden="true">↗</span></button></div>
+          <p class="form-error" id="snapshot-error" role="alert" hidden></p>
+        </form>
+        <div class="collection-toolbar"><span>Past chapters</span><span id="life-count">0 snapshots</span></div>
+        <div class="capsule-grid" id="life-grid" aria-live="polite"></div>
+        <div class="empty-state collection-empty" id="life-empty" hidden><span class="empty-icon" aria-hidden="true">✳</span><h3>Your story, as it is today.</h3><p>Save your first snapshot above. Come back anytime to add another chapter.</p></div>
+      </section>
+    </main>
+
+    <footer class="footer"><a class="brand footer-brand" href="#"><span class="brand-mark" aria-hidden="true">✳</span><span>to my <strong>future self</strong></span></a><p>Made for the you you’re still becoming.</p><span class="footer-year">A LITTLE LOVE, THROUGH TIME <span>♥</span></span></footer>
+
+    <dialog class="compose-dialog" id="compose-dialog" aria-labelledby="compose-title">
+      <form class="compose-form" id="compose-form">
+        <div class="dialog-heading">
+          <div><p class="eyebrow">A NOTE TO YOUR FUTURE SELF</p><h2 id="compose-title">Tuck something away<span class="heading-period">.</span></h2></div>
+          <button class="icon-button" type="button" data-close-dialog aria-label="Close">×</button>
+        </div>
+        <label class="field-label" for="entry-title">Give this memory a name</label>
+        <input class="text-input" id="entry-title" name="title" maxlength="100" placeholder="The summer I learned to slow down" required>
+        <div class="field-row">
+          <label class="field-group"><span class="field-label">This is a...</span><select class="text-input" id="entry-kind" name="kind"><option value="letter">Letter to myself</option><option value="journal">Journal entry</option><option value="memory">Photo &amp; video memory</option></select></label>
+          <label class="field-group"><span class="field-label">Open it on</span><input class="text-input" id="unlock-date" name="unlockAt" type="datetime-local" required></label>
+        </div>
+        <label class="field-group milestone-group"><span class="field-label" for="milestone-select">Need an idea for a date?</span><select class="text-input" id="milestone-select"><option value="custom">Choose a date yourself</option><option value="1-month">In one month</option><option value="1-year">One year from today</option><option value="5-years">Five years from today</option><option value="18th-birthday">Your 18th birthday</option><option value="21st-birthday">Your 21st birthday</option><option value="graduation">Graduation day</option></select><p class="upload-hint" id="milestone-hint">For a birthday or graduation, choose the actual date above.</p></label>
+        <div class="entry-body-field">
+          <label class="field-label" for="entry-body">Add a note <span class="optional-label" id="body-optional">· optional</span></label>
+          <textarea class="text-input text-area" id="entry-body" name="body" placeholder="Dear future me,&#10;&#10;Right now, I’m thinking about..."></textarea>
+        </div>
+        <div class="upload-row">
+          <div><span class="field-label" id="attachment-label">Add photos, videos, or music <span class="optional-label">· optional</span></span><p class="upload-hint" id="attachment-hint">Your memories stay tucked inside this capsule.</p></div>
+          <label class="button button-outline upload-button"><span aria-hidden="true">＋</span> Choose files<input id="photo-input" type="file" accept="image/*,video/*,audio/*" multiple hidden></label>
+        </div>
+        <div class="photo-preview" id="photo-preview" aria-live="polite"></div>
+        <p class="form-error" id="form-error" role="alert" hidden></p>
+        <div class="dialog-actions"><button class="button button-text" type="button" data-close-dialog>Maybe later</button><button class="button button-coral" type="submit">Seal this capsule <span aria-hidden="true">↗</span></button></div>
+        <p class="privacy-note"><span aria-hidden="true">⌂</span> Your capsules are stored privately in this browser.</p>
+      </form>
+    </dialog>
+
+    <dialog class="detail-dialog" id="detail-dialog" aria-labelledby="detail-title">
+      <div class="detail-content" id="detail-content"></div>
+    </dialog>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </body>
+</html>
