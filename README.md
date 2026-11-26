@@ -15,7 +15,7 @@ Open `index.html` in a modern browser for the local time-capsule features, or se
 - Save periodic "My Life Right Now" snapshots with prompts about how you feel, where you are, and what you are looking forward to.
 - Capsules remain locked until their chosen date, then become readable from the capsule list.
 - Search and filter your saved capsules, and delete them when you no longer need them.
-- Content and media are stored in this browser using IndexedDB. They are not uploaded or synced, so they remain on this browser and device unless you explicitly share letter text using your device.
+- Letters and media are stored in this browser using IndexedDB; "My Life Right Now" snapshots are saved in localStorage. They are not uploaded or synced, so they remain on this browser and device unless you explicitly share letter text using your device.
 - Add friends by email, accept friend requests, and schedule letters for accepted friends. Recipients cannot query a letter until its unlock time; an email notice is sent at that time.
 
 ## Friend letters setup

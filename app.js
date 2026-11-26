@@ -1,8 +1,11 @@
 const DB_NAME = "to-my-future-self";
 const STORE_NAME = "capsules";
+const SNAPSHOTS_STORAGE_KEY = "to-my-future-self.snapshots";
 const composeDialog = document.querySelector("#compose-dialog");
 const detailDialog = document.querySelector("#detail-dialog");
 const form = document.querySelector("#compose-form");
+const snapshotForm = document.querySelector("#snapshot-form");
+const snapshotSubmitButton = snapshotForm.querySelector('button[type="submit"]');
 const entryKind = document.querySelector("#entry-kind");
 const grid = document.querySelector("#capsule-grid");
 const emptyState = document.querySelector("#empty-state");
@@ -15,6 +18,7 @@ const objectUrls = new Set();
 let capsules = [];
 let selectedFilter = "all";
 let selectedAttachments = [];
+let isSavingSnapshot = false;
 let toastTimer;
 
 function openDatabase() {
@@ -52,6 +56,10 @@ async function storeCapsule(capsule, mode = "readwrite") {
 }
 
 async function removeCapsule(id) {
+  const capsule = capsules.find((item) => item.id === id);
+  if (capsule?.kind === "life") {
+    writeSnapshots(readSnapshots().filter((item) => item.id !== id));
+  }
   const db = await openDatabase();
   return new Promise((resolve, reject) => {
     const transaction = db.transaction(STORE_NAME, "readwrite");
@@ -69,6 +77,20 @@ async function removeCapsule(id) {
       reject(transaction.error || new Error("The browser could not remove this capsule."));
     };
   });
+}
+
+function readSnapshots() {
+  const saved = localStorage.getItem(SNAPSHOTS_STORAGE_KEY);
+  if (!saved) return [];
+  const parsed = JSON.parse(saved);
+  if (!Array.isArray(parsed)) {
+    throw new Error("Saved snapshots have an invalid format.");
+  }
+  return parsed.filter((capsule) => capsule && capsule.kind === "life").map(normalizeCapsule);
+}
+
+function writeSnapshots(snapshots) {
+  localStorage.setItem(SNAPSHOTS_STORAGE_KEY, JSON.stringify(snapshots));
 }
 
 function isReady(capsule) {
@@ -126,6 +148,31 @@ function attachmentWord(attachments) {
   return parts.join(" · ");
 }
 
+function formatCountdown(unlockAt, now = Date.now()) {
+  const remaining = Math.max(0, Date.parse(unlockAt) - now);
+  const seconds = Math.floor(remaining / 1000);
+  const days = Math.floor(seconds / 86_400);
+  const hours = Math.floor((seconds % 86_400) / 3_600);
+  const minutes = Math.floor((seconds % 3_600) / 60);
+  const remainder = seconds % 60;
+  const pad = (value) => String(value).padStart(2, "0");
+  return `Available in ${days}d ${pad(hours)}h ${pad(minutes)}m ${pad(remainder)}s`;
+}
+
+function updateCountdowns() {
+  let hasExpired = false;
+  document.querySelectorAll("[data-countdown]").forEach((countdown) => {
+    const unlockAt = countdown.dataset.countdown;
+    if (Date.parse(unlockAt) <= Date.now()) {
+      countdown.textContent = "Available now";
+      hasExpired = true;
+    } else {
+      countdown.textContent = formatCountdown(unlockAt);
+    }
+  });
+  if (hasExpired && !composeDialog.open && !detailDialog.open) renderCapsules();
+}
+
 function makeCard(capsule) {
   const ready = isReady(capsule);
   const card = document.createElement("article");
@@ -155,6 +202,7 @@ function makeCard(capsule) {
     <p class="card-excerpt">${escapeHTML(excerpt)}</p>
     ${mediaPreview}
     <div class="card-bottom"><span class="card-date">◷ ${escapeHTML(formatDate(capsule.unlockAt))}</span><span class="card-status ${ready ? "ready" : ""}">${ready ? "Ready to open" : "Still tucked away"}</span></div>
+    ${ready ? "" : `<p class="card-countdown" data-countdown="${escapeHTML(capsule.unlockAt)}" aria-label="Time until this capsule is available"></p>`}
     ${capsule.attachments.length ? `<span class="card-photos">${escapeHTML(attachmentWord(capsule.attachments))} tucked inside</span>` : ""}
   `;
   card.addEventListener("click", () => openCapsule(capsule.id));
@@ -208,6 +256,7 @@ function renderCapsules() {
   renderGrid("#letters-grid", letters, "#letters-empty", "#letters-count", "letter", "letters");
   renderGrid("#memories-grid", memories, "#memories-empty", "#memories-count", "memory", "memories");
   renderGrid("#life-grid", snapshots, "#life-empty", "#life-count", "snapshot", "snapshots");
+  updateCountdowns();
 }
 
 function showToast(message) {
@@ -363,7 +412,7 @@ async function openCapsule(id) {
   } else {
     const locked = document.createElement("div");
     locked.className = "detail-locked";
-    locked.innerHTML = `<span class="lock-icon" aria-hidden="true">⌑</span><p>This memory is still tucked away.<br>Come back on <strong>${escapeHTML(formatDate(capsule.unlockAt, { weekday: "long", month: "long", day: "numeric", year: "numeric" }))}</strong> to open it.</p>`;
+    locked.innerHTML = `<span class="lock-icon" aria-hidden="true">⌑</span><p>This memory is still tucked away.<br>Come back on <strong>${escapeHTML(formatDate(capsule.unlockAt, { weekday: "long", month: "long", day: "numeric", year: "numeric" }))}</strong> to open it.</p><div class="detail-countdown" data-countdown="${escapeHTML(capsule.unlockAt)}"></div>`;
     content.append(locked);
   }
 
@@ -524,24 +573,33 @@ form.addEventListener("submit", async (event) => {
   }
 });
 
-document.querySelector("#snapshot-form").addEventListener("submit", async (event) => {
+snapshotForm.addEventListener("submit", (event) => {
   event.preventDefault();
   const snapshotError = document.querySelector("#snapshot-error");
   snapshotError.hidden = true;
-  const formData = new FormData(event.currentTarget);
+  if (isSavingSnapshot) return;
+  const formData = new FormData(snapshotForm);
   const body = formData.get("body").trim();
   if (!body) {
     snapshotError.textContent = "Add a few lines about life right now before saving.";
     snapshotError.hidden = false;
     return;
   }
+  isSavingSnapshot = true;
+  snapshotSubmitButton.disabled = true;
   const date = new Date();
   const dateLabel = formatDate(date);
+  const snapshotDetails = {
+    place: formData.get("place").trim(),
+    feeling: formData.get("feeling").trim(),
+    loving: formData.get("loving").trim(),
+    lookingForward: formData.get("lookingForward").trim(),
+  };
   const notes = [
-    formData.get("place").trim() && `Where I am: ${formData.get("place").trim()}`,
-    formData.get("feeling").trim() && `How I feel: ${formData.get("feeling").trim()}`,
-    formData.get("loving").trim() && `What I love lately: ${formData.get("loving").trim()}`,
-    formData.get("lookingForward").trim() && `What I’m looking forward to: ${formData.get("lookingForward").trim()}`,
+    snapshotDetails.place && `Where I am: ${snapshotDetails.place}`,
+    snapshotDetails.feeling && `How I feel: ${snapshotDetails.feeling}`,
+    snapshotDetails.loving && `What I love lately: ${snapshotDetails.loving}`,
+    snapshotDetails.lookingForward && `What I’m looking forward to: ${snapshotDetails.lookingForward}`,
     body,
   ].filter(Boolean);
   const capsule = {
@@ -549,6 +607,7 @@ document.querySelector("#snapshot-form").addEventListener("submit", async (event
     kind: "life",
     title: document.querySelector("#snapshot-title").value.trim() || `My life right now · ${dateLabel}`,
     body: notes.join("\n\n"),
+    snapshotDetails,
     milestone: "custom",
     milestoneLabel: "",
     unlockAt: date.toISOString(),
@@ -556,15 +615,24 @@ document.querySelector("#snapshot-form").addEventListener("submit", async (event
     attachments: [],
   };
   try {
-    await storeCapsule(capsule);
-    capsules.unshift(capsule);
-    event.currentTarget.reset();
-    renderCapsules();
-    showToast("Snapshot saved. This is your life, right now.");
+    const savedSnapshots = readSnapshots().filter((snapshot) => snapshot.id !== capsule.id);
+    savedSnapshots.push(capsule);
+    writeSnapshots(savedSnapshots);
+    capsules = [...capsules.filter((item) => item.kind !== "life"), ...savedSnapshots];
   } catch (error) {
     snapshotError.textContent = `Could not save your snapshot. ${error.message || ""}`.trim();
     snapshotError.hidden = false;
+    isSavingSnapshot = false;
+    snapshotSubmitButton.disabled = false;
+    return;
   }
+  snapshotForm.reset();
+  renderCapsules();
+  showToast("Snapshot saved. This is your life, right now.");
+  setTimeout(() => {
+    isSavingSnapshot = false;
+    snapshotSubmitButton.disabled = false;
+  }, 1_000);
 });
 
 window.addEventListener("hashchange", renderPage);
@@ -578,7 +646,19 @@ composeDialog.addEventListener("close", () => {
 async function start() {
   renderPage();
   try {
-    capsules = (await storeCapsule(undefined, "readonly") || []).map(normalizeCapsule);
+    const storedCapsules = (await storeCapsule(undefined, "readonly") || []).map(normalizeCapsule);
+    const localSnapshots = readSnapshots();
+    const snapshotsById = new Map(
+      [...storedCapsules.filter((item) => item.kind === "life"), ...localSnapshots]
+        .map((item) => [item.id, item]),
+    );
+    if (storedCapsules.some((item) => item.kind === "life")) {
+      writeSnapshots([...snapshotsById.values()]);
+    }
+    capsules = [
+      ...storedCapsules.filter((item) => item.kind !== "life"),
+      ...snapshotsById.values(),
+    ];
     renderCapsules();
   } catch (error) {
     document.querySelector("#empty-title").textContent = "Storage isn’t available.";
@@ -589,6 +669,4 @@ async function start() {
 }
 
 start();
-window.setInterval(() => {
-  if (!composeDialog.open && !detailDialog.open) renderCapsules();
-}, 60_000);
+window.setInterval(updateCountdowns, 1_000);
