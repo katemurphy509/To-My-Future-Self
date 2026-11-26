@@ -137,7 +137,7 @@ function makeCard(capsule) {
   const excerpt = ready
     ? capsule.body || `${capsule.attachments.length} ${capsule.attachments.length === 1 ? "moment" : "moments"} saved for you.`
     : "A little memory from past you, waiting for the right day.";
-  const mediaPreview = ready && capsule.kind === "memory" && capsule.attachments.length
+  const mediaPreview = ready && capsule.attachments.length
     ? `<div class="card-media-preview">${capsule.attachments.slice(0, 3).map((attachment) => (
       attachment.mediaType === "video"
         ? `<span class="video-preview"><span aria-hidden="true">▶</span> VIDEO</span>`
@@ -258,12 +258,13 @@ function updateComposerKind() {
   const body = document.querySelector("#entry-body");
   body.required = !isMemory;
   document.querySelector("#body-optional").hidden = !isMemory;
+  document.querySelector("#sharing-options").hidden = isMemory;
   document.querySelector("#attachment-label").innerHTML = isMemory
     ? 'Add photos, videos, or music <span class="optional-label">· required</span>'
     : 'Add photos, videos, or music <span class="optional-label">· optional</span>';
   document.querySelector("#attachment-hint").textContent = isMemory
     ? "Choose at least one photo, video, or music file to save this memory."
-    : "Your memories stay tucked inside this capsule.";
+    : "Add photos, videos, or music to this letter or journal entry.";
   document.querySelector("#attachment-label").parentElement.parentElement.classList.toggle("memory-required", isMemory);
   document.querySelector("#entry-body").placeholder = isMemory
     ? "Add a caption or a few details to go with these memories..."
@@ -325,7 +326,8 @@ async function openCapsule(id) {
 
   const header = document.createElement("div");
   header.className = "detail-header";
-  header.innerHTML = `<div><div class="detail-meta">${escapeHTML(capsuleLabel(capsule.kind))} · ${ready ? "Ready to open" : "Still tucked away"}</div><h2 class="detail-title" id="detail-title">${escapeHTML(capsule.title)}</h2><div class="detail-date">Saved ${escapeHTML(formatDate(capsule.createdAt))} · Opens ${escapeHTML(formatDate(capsule.unlockAt))}${capsule.milestone && capsule.milestone !== "custom" ? ` · ${escapeHTML(capsule.milestoneLabel)}` : ""}</div></div>`;
+  const shareEnabled = capsule.shareEnabled && (capsule.kind === "letter" || capsule.kind === "journal");
+  header.innerHTML = `<div><div class="detail-meta">${escapeHTML(capsuleLabel(capsule.kind))} · ${ready ? "Ready to open" : "Still tucked away"}${shareEnabled ? " · Share option enabled" : ""}</div><h2 class="detail-title" id="detail-title">${escapeHTML(capsule.title)}</h2><div class="detail-date">Saved ${escapeHTML(formatDate(capsule.createdAt))} · Opens ${escapeHTML(formatDate(capsule.unlockAt))}${capsule.milestone && capsule.milestone !== "custom" ? ` · ${escapeHTML(capsule.milestoneLabel)}` : ""}</div></div>`;
   const close = document.createElement("button");
   close.className = "icon-button";
   close.type = "button";
@@ -388,9 +390,43 @@ async function openCapsule(id) {
   closeAction.type = "button";
   closeAction.textContent = "Close";
   closeAction.addEventListener("click", () => detailDialog.close());
-  actions.append(remove, closeAction);
+  const actionButtons = document.createElement("div");
+  actionButtons.className = "detail-action-buttons";
+  if (ready && shareEnabled) {
+    const share = document.createElement("button");
+    share.className = "button button-coral";
+    share.type = "button";
+    share.textContent = "Share with family & friends";
+    share.addEventListener("click", () => shareCapsule(capsule));
+    actionButtons.append(share);
+  }
+  actionButtons.append(closeAction);
+  actions.append(remove, actionButtons);
   content.append(actions);
   detailDialog.showModal();
+}
+
+async function shareCapsule(capsule) {
+  const text = `${capsule.title}\n\n${capsule.body}`;
+  try {
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: capsule.title, text });
+        showToast("Share options opened.");
+        return;
+      } catch (error) {
+        if (error.name === "AbortError") return;
+        if (!navigator.clipboard?.writeText) throw error;
+      }
+    }
+    if (!navigator.clipboard?.writeText) {
+      throw new Error("Sharing or clipboard access is not available in this browser.");
+    }
+    await navigator.clipboard.writeText(text);
+    showToast("Letter copied. You can paste it into a message.");
+  } catch (error) {
+    showToast(`Could not share this letter: ${error.message}`);
+  }
 }
 
 function renderPage() {
@@ -469,6 +505,7 @@ form.addEventListener("submit", async (event) => {
     title,
     kind,
     body,
+    shareEnabled: kind !== "memory" && data.get("sharing") === "share",
     milestone: selectedMilestone,
     milestoneLabel: document.querySelector("#milestone-select").selectedOptions[0].textContent,
     unlockAt: unlockAt.toISOString(),

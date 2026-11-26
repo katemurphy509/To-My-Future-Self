@@ -7,7 +7,10 @@
     <meta name="description" content="Save today. Revisit tomorrow. Create digital time capsules with photos, letters, videos, music, and memories.">
     <title>To My Future Self — a little time capsule</title>
     <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+    <script src="supabase-config.js" defer></script>
     <script src="app.js" defer></script>
+    <script src="friends.js" defer></script>
   </head>
   <body>
     <header class="topbar">
@@ -20,6 +23,7 @@
         <a class="nav-link" href="#letters" data-page-link="letters">Letters</a>
         <a class="nav-link" href="#memories" data-page-link="memories">Photo &amp; video</a>
         <a class="nav-link" href="#life-right-now" data-page-link="life-right-now">My life right now</a>
+        <a class="nav-link" href="#friends" data-page-link="friends">Friends</a>
       </nav>
       <button class="button button-dark top-write" type="button" data-open-compose data-kind="letter">
         <span aria-hidden="true">＋</span> Write a letter
@@ -147,6 +151,76 @@
         <div class="capsule-grid" id="life-grid" aria-live="polite"></div>
         <div class="empty-state collection-empty" id="life-empty" hidden><span class="empty-icon" aria-hidden="true">✳</span><h3>Your story, as it is today.</h3><p>Save your first snapshot above. Come back anytime to add another chapter.</p></div>
       </section>
+
+      <section class="page-view collection-page friends-page" id="friends-page" data-page="friends" hidden aria-labelledby="friends-title">
+        <div class="collection-heading">
+          <p class="eyebrow section-eyebrow">LETTERS FROM YOUR PEOPLE</p>
+          <h1 id="friends-title">A little note, right on time<span class="heading-period">.</span></h1>
+          <p>Add family and friends, then send a letter for a birthday, graduation, wedding, or any day worth remembering.</p>
+        </div>
+        <div class="friends-dashboard">
+          <div class="friend-panel friend-setup" id="friends-setup" role="status">
+            <h2>Connect your Supabase project</h2>
+            <p>Friend letters need an account and secure shared storage. Add your project URL and public anon key to <code>supabase-config.js</code>, then follow the setup steps in the README.</p>
+          </div>
+          <section class="friend-panel friend-auth" id="friends-auth" hidden aria-labelledby="friends-auth-title">
+            <h2 id="friends-auth-title">Sign in to write or receive letters</h2>
+            <p>We’ll email you a secure sign-in link. Friends need to sign in with the address you invite.</p>
+            <form id="friend-auth-form">
+              <label class="field-label" for="friend-auth-email">Your email address</label>
+              <input class="text-input" id="friend-auth-email" type="email" autocomplete="email" required>
+              <button class="button button-coral" type="submit">Email me a sign-in link <span aria-hidden="true">↗</span></button>
+              <p class="friend-message" id="friend-auth-message" role="status" aria-live="polite"></p>
+            </form>
+          </section>
+          <div class="friends-account" id="friends-dashboard-content" hidden>
+            <div class="friend-account-row">
+              <p>Signed in as <strong id="friend-account-email"></strong></p>
+              <div><button class="button button-outline" id="friend-refresh" type="button">Refresh letters</button><button class="button button-text" id="friend-signout" type="button">Sign out</button></div>
+            </div>
+            <p class="friend-message" id="friends-message" role="status" aria-live="polite"></p>
+            <div class="friends-columns">
+              <section class="friend-panel" aria-labelledby="friends-list-title">
+                <h2 id="friends-list-title">Your friends</h2>
+                <form id="friend-add-form" class="friend-form">
+                  <label class="field-label" for="friend-email">Add someone by email</label>
+                  <div class="friend-add-row"><input class="text-input" id="friend-email" name="email" type="email" autocomplete="email" placeholder="friend@example.com" required><button class="button button-dark" type="submit">Invite</button></div>
+                  <p class="upload-hint">They’ll get a sign-in link to accept your request.</p>
+                </form>
+                <div class="friend-list" id="friend-requests" aria-live="polite"></div>
+                <div class="friend-list" id="friend-list" aria-live="polite"></div>
+              </section>
+              <section class="friend-panel" aria-labelledby="scheduled-letter-title">
+                <h2 id="scheduled-letter-title">Write a letter for later</h2>
+                <p class="friend-panel-copy">Your friend won’t see the letter or know it’s waiting until its date. We’ll email them when it’s ready.</p>
+                <form id="scheduled-letter-form" class="friend-form">
+                  <label class="field-label" for="letter-recipient">Send to</label>
+                  <select class="text-input" id="letter-recipient" name="friendshipId" required>
+                    <option value="">Add and connect with a friend first</option>
+                  </select>
+                  <label class="field-label" for="scheduled-letter-title">Give this letter a name</label>
+                  <input class="text-input" id="scheduled-letter-title" name="title" maxlength="100" placeholder="For your graduation day" required>
+                  <label class="field-label" for="scheduled-letter-body">Your letter</label>
+                  <textarea class="text-input text-area" id="scheduled-letter-body" name="body" maxlength="20000" placeholder="Dear you, I hope you know how proud I am..." required></textarea>
+                  <label class="field-label" for="scheduled-letter-date">Deliver it on</label>
+                  <input class="text-input" id="scheduled-letter-date" name="unlockAt" type="datetime-local" required>
+                  <p class="upload-hint">Only the sender can see the letter before this date. The recipient’s inbox and email notice stay quiet until then.</p>
+                  <button class="button button-coral" type="submit">Seal and schedule letter <span aria-hidden="true">↗</span></button>
+                </form>
+              </section>
+            </div>
+            <section class="friend-panel friend-letters-panel" aria-labelledby="received-letters-title">
+              <h2 id="received-letters-title">Letters to you</h2>
+              <p class="friend-panel-copy">Only letters whose delivery date has arrived appear here.</p>
+              <div class="friend-letters" id="received-letters" aria-live="polite"></div>
+            </section>
+            <section class="friend-panel friend-letters-panel" aria-labelledby="sent-letters-title">
+              <h2 id="sent-letters-title">Letters you’ve sent</h2>
+              <div class="friend-letters" id="sent-letters" aria-live="polite"></div>
+            </section>
+          </div>
+        </div>
+      </section>
     </main>
 
     <footer class="footer"><a class="brand footer-brand" href="#"><span class="brand-mark" aria-hidden="true">✳</span><span>to my <strong>future self</strong></span></a><p>Made for the you you’re still becoming.</p><span class="footer-year">A LITTLE LOVE, THROUGH TIME <span>♥</span></span></footer>
@@ -168,6 +242,12 @@
           <label class="field-label" for="entry-body">Add a note <span class="optional-label" id="body-optional">· optional</span></label>
           <textarea class="text-input text-area" id="entry-body" name="body" placeholder="Dear future me,&#10;&#10;Right now, I’m thinking about..."></textarea>
         </div>
+        <fieldset class="sharing-options" id="sharing-options">
+          <legend class="field-label">Who can see this letter?</legend>
+          <label class="sharing-choice"><input type="radio" name="sharing" value="private" checked><span>Keep it private</span></label>
+          <label class="sharing-choice"><input type="radio" name="sharing" value="share"><span>Share with family &amp; friends</span></label>
+          <p class="upload-hint">Sharing is never automatic. When it unlocks, you can send the letter using your device’s share options or copy it.</p>
+        </fieldset>
         <div class="upload-row">
           <div><span class="field-label" id="attachment-label">Add photos, videos, or music <span class="optional-label">· optional</span></span><p class="upload-hint" id="attachment-hint">Your memories stay tucked inside this capsule.</p></div>
           <label class="button button-outline upload-button"><span aria-hidden="true">＋</span> Choose files<input id="photo-input" type="file" accept="image/*,video/*,audio/*" multiple hidden></label>
@@ -175,7 +255,7 @@
         <div class="photo-preview" id="photo-preview" aria-live="polite"></div>
         <p class="form-error" id="form-error" role="alert" hidden></p>
         <div class="dialog-actions"><button class="button button-text" type="button" data-close-dialog>Maybe later</button><button class="button button-coral" type="submit">Seal this capsule <span aria-hidden="true">↗</span></button></div>
-        <p class="privacy-note"><span aria-hidden="true">⌂</span> Your capsules are stored privately in this browser.</p>
+        <p class="privacy-note"><span aria-hidden="true">⌂</span> Your capsules are stored in this browser. Sharing is always your choice.</p>
       </form>
     </dialog>
 
